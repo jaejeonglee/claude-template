@@ -35,6 +35,11 @@ _마지막 업데이트: 2026-04-23_
 - [x] CLAUDE.md에 "아키텍처 변경 감지 시" 트리거 조건 추가
 - [x] Karpathy 4원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution)을 CLAUDE.md Part 1으로 흡수
 - [x] init.sh 멱등 병합에 Karpathy 섹션 자동 추가 로직 추가 (기존 사용자 자동 업그레이드)
+- [x] 표준 문서 카테고리 디렉토리 도입 (api/, contracts/, runbooks/, decisions/, reference/)
+- [x] CLAUDE.md에 "문서 찾기" 섹션 추가 (정적 가이드)
+- [x] SessionStart 훅에 .claude/docs/ 디렉토리 트리 동적 출력 추가
+- [x] /migrate-from-ai 스킬 추가 (구버전 .ai/ → 새 구조 분류·통합·이동)
+- [x] init.sh 멱등 병합 확장 (문서 찾기 섹션 + /migrate-from-ai Skills 행)
 
 ## 남은 것
 

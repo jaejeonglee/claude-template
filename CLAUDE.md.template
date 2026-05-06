@@ -72,15 +72,32 @@
 
 ## 세션 시작 시
 
-SessionStart 훅이 `.claude/CURRENT_TASK.md`를 출력한다.
+SessionStart 훅이 `.claude/CURRENT_TASK.md`와 `.claude/docs/` 디렉토리 트리를 출력한다.
 
 - 미완료 작업이 있으면 → 상태를 보고하고 사용자 지시를 기다린다.
 - `architecture.md`나 `conventions.md`가 비어있으면 → 프로젝트 파일을 읽고 채운다.
 
-프로젝트 맥락이 필요하면:
+---
 
-1. `.claude/docs/architecture.md` — 시스템 구조
-2. `.claude/docs/conventions.md` — 프로젝트 규칙
+## 문서 찾기
+
+특정 정보가 필요하면 아래 위치를 우선 탐색한다. 카테고리는 디렉토리 단위로 안정적이고, 디렉토리 안의 실제 파일은 `ls`로 동적 확인.
+
+| 무엇을 찾을 때 | 위치 | 로드 방식 |
+|---|---|---|
+| 시스템 구조, 모듈 | `.claude/docs/architecture.md` | 항상 로드 (작게 유지) |
+| 코딩 규칙, 정책 | `.claude/docs/conventions.md` | 항상 로드 (작게 유지) |
+| API 스펙 / OpenAPI | `.claude/docs/api/` | 필요 시 grep |
+| 스마트 컨트랙트, DB 스키마, proto, ddl | `.claude/docs/contracts/` | 필요 시 |
+| 운영 가이드, 보안 플레이북, 인시던트 | `.claude/docs/runbooks/` | 필요 시 |
+| 의사결정 기록 (ADR) | `.claude/docs/decisions/` | 필요 시 |
+| 기획 초안 (작업 중) | `.claude/docs/specs/` | 작업 시 |
+| 기타 큰 참조 자료 | `.claude/docs/reference/` | 필요 시 |
+
+**원칙:**
+- `architecture.md`, `conventions.md`는 **작고 핵심만** — 항상 컨텍스트에 로드되니까.
+- 큰 레퍼런스(API 100K+, 보안 플레이북, ADR 등)는 카테고리 디렉토리에 배치 — 필요할 때만 읽기.
+- 새 카테고리가 생기면 SessionStart 훅의 디렉토리 트리에 자동 반영됨.
 
 ---
 
@@ -174,3 +191,4 @@ Claude           → 구현 → 문서 동기화 → draft 삭제
 | `/update-task` | `.claude/CURRENT_TASK.md` 현재 상태로 갱신 |
 | `/add-rule <규칙>` | 프로젝트 규칙을 `conventions.md`에 추가 |
 | `/update-architecture` | `architecture.md`를 현재 코드 기준으로 생성/갱신 |
+| `/migrate-from-ai` | 구버전 `.ai/` 디렉토리를 새 구조로 분류·이동 |

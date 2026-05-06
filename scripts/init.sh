@@ -68,6 +68,14 @@ mkdir -p "$TARGET_DIR/.claude/skills/new-spec"
 mkdir -p "$TARGET_DIR/.claude/skills/update-task"
 mkdir -p "$TARGET_DIR/.claude/skills/add-rule"
 mkdir -p "$TARGET_DIR/.claude/skills/update-architecture"
+mkdir -p "$TARGET_DIR/.claude/skills/migrate-from-ai"
+
+# 표준 문서 카테고리 디렉토리 (이미 있으면 그대로 유지)
+mkdir -p "$TARGET_DIR/.claude/docs/api"
+mkdir -p "$TARGET_DIR/.claude/docs/contracts"
+mkdir -p "$TARGET_DIR/.claude/docs/runbooks"
+mkdir -p "$TARGET_DIR/.claude/docs/decisions"
+mkdir -p "$TARGET_DIR/.claude/docs/reference"
 mkdir -p "$TARGET_DIR/.claude/docs/specs"
 
 # [2/4] 에이전트·스킬 (항상 최신으로 덮어씀)
@@ -82,6 +90,7 @@ copy_file ".claude/skills/new-spec/SKILL.md" "$TARGET_DIR/.claude/skills/new-spe
 copy_file ".claude/skills/update-task/SKILL.md" "$TARGET_DIR/.claude/skills/update-task/SKILL.md"
 copy_file ".claude/skills/add-rule/SKILL.md" "$TARGET_DIR/.claude/skills/add-rule/SKILL.md"
 copy_file ".claude/skills/update-architecture/SKILL.md" "$TARGET_DIR/.claude/skills/update-architecture/SKILL.md"
+copy_file ".claude/skills/migrate-from-ai/SKILL.md" "$TARGET_DIR/.claude/skills/migrate-from-ai/SKILL.md"
 copy_file ".claude/settings.json" "$TARGET_DIR/.claude/settings.json"
 
 # [3/4] 문서 (이미 있으면 건너뜀)
@@ -151,6 +160,78 @@ if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
         mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
       APPENDED=1
     fi
+  fi
+
+  # 1-c. Skills 테이블에 /migrate-from-ai 추가
+  if ! grep -qE '^\|.*\/migrate-from-ai' "$TARGET_DIR/CLAUDE.md"; then
+    if grep -q "/update-architecture" "$TARGET_DIR/CLAUDE.md"; then
+      awk '
+        /\/update-architecture.*architecture/ {
+          print;
+          print "| `/migrate-from-ai` | 구버전 `.ai/` 디렉토리를 새 구조로 분류·이동 |";
+          next
+        }
+        { print }
+      ' "$TARGET_DIR/CLAUDE.md" > "$TARGET_DIR/CLAUDE.md.tmp" && \
+        mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+      APPENDED=1
+    fi
+  fi
+
+  # 1-d. "문서 찾기" 섹션 추가 (없으면 "## 세션 시작 시" 섹션 뒤에 삽입)
+  if ! grep -q "## 문서 찾기" "$TARGET_DIR/CLAUDE.md"; then
+    DOCFINDER_TMP=$(mktemp)
+    cat > "$DOCFINDER_TMP" << 'DOC_FINDER'
+
+---
+
+## 문서 찾기
+
+특정 정보가 필요하면 아래 위치를 우선 탐색한다. 카테고리는 디렉토리 단위로 안정적이고, 디렉토리 안의 실제 파일은 `ls`로 동적 확인.
+
+| 무엇을 찾을 때 | 위치 | 로드 방식 |
+|---|---|---|
+| 시스템 구조, 모듈 | `.claude/docs/architecture.md` | 항상 로드 (작게 유지) |
+| 코딩 규칙, 정책 | `.claude/docs/conventions.md` | 항상 로드 (작게 유지) |
+| API 스펙 / OpenAPI | `.claude/docs/api/` | 필요 시 grep |
+| 스마트 컨트랙트, DB 스키마, proto, ddl | `.claude/docs/contracts/` | 필요 시 |
+| 운영 가이드, 보안 플레이북, 인시던트 | `.claude/docs/runbooks/` | 필요 시 |
+| 의사결정 기록 (ADR) | `.claude/docs/decisions/` | 필요 시 |
+| 기획 초안 (작업 중) | `.claude/docs/specs/` | 작업 시 |
+| 기타 큰 참조 자료 | `.claude/docs/reference/` | 필요 시 |
+
+**원칙:**
+- `architecture.md`, `conventions.md`는 **작고 핵심만** — 항상 컨텍스트에 로드되니까.
+- 큰 레퍼런스(API 100K+, 보안 플레이북, ADR 등)는 카테고리 디렉토리에 배치 — 필요할 때만 읽기.
+- 새 카테고리가 생기면 SessionStart 훅의 디렉토리 트리에 자동 반영됨.
+DOC_FINDER
+
+    # "## 세션 시작 시" 섹션 끝나는 지점 또는 파일 끝에 삽입
+    if grep -q "## 세션 시작 시" "$TARGET_DIR/CLAUDE.md"; then
+      # 첫 번째 "---" 구분선 뒤에 삽입
+      awk -v doc_finder_file="$DOCFINDER_TMP" '
+        BEGIN { inserted = 0 }
+        /^## 세션 시작 시/ { in_session = 1 }
+        in_session && /^---$/ && !inserted {
+          while ((getline line < doc_finder_file) > 0) print line
+          close(doc_finder_file)
+          inserted = 1
+          next
+        }
+        { print }
+        END {
+          if (!inserted) {
+            while ((getline line < doc_finder_file) > 0) print line
+            close(doc_finder_file)
+          }
+        }
+      ' "$TARGET_DIR/CLAUDE.md" > "$TARGET_DIR/CLAUDE.md.tmp" && \
+        mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+    else
+      cat "$DOCFINDER_TMP" >> "$TARGET_DIR/CLAUDE.md"
+    fi
+    rm -f "$DOCFINDER_TMP"
+    APPENDED=1
   fi
 
   # 2-a. "아키텍처 변경 감지 시" 섹션 추가
