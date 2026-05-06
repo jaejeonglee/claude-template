@@ -33,6 +33,8 @@ _마지막 업데이트: 2026-04-23_
 - [x] architecture.md 프로젝트 타입 무관하게 재설계 (빈 템플릿)
 - [x] /update-architecture 스킬 추가 (6가지 프로젝트 유형 자동 감지)
 - [x] CLAUDE.md에 "아키텍처 변경 감지 시" 트리거 조건 추가
+- [x] Karpathy 4원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution)을 CLAUDE.md Part 1으로 흡수
+- [x] init.sh 멱등 병합에 Karpathy 섹션 자동 추가 로직 추가 (기존 사용자 자동 업그레이드)
 
 ## 남은 것
 

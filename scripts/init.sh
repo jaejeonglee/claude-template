@@ -93,6 +93,34 @@ if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
   # 기존 CLAUDE.md가 있으면 누락된 섹션만 추가 (멱등적 병합)
   APPENDED=0
 
+  # 0. Karpathy 4원칙 추가 (없으면 맨 앞 헤더 뒤에 삽입)
+  if ! grep -q "# Part 1. 코딩 자세" "$TARGET_DIR/CLAUDE.md"; then
+    KARPATHY_TMP=$(mktemp)
+    if [ -n "$TEMPLATE_LOCAL" ]; then
+      awk '/^# Part 1\./,/^# Part 2\./' "$TEMPLATE_LOCAL/CLAUDE.md.template" \
+        | sed '$d' > "$KARPATHY_TMP"
+    else
+      curl -sf "$TEMPLATE_REPO/CLAUDE.md.template" \
+        | awk '/^# Part 1\./,/^# Part 2\./' \
+        | sed '$d' > "$KARPATHY_TMP"
+    fi
+
+    if [ -s "$KARPATHY_TMP" ]; then
+      # 첫 줄(헤더) + 구분선 + Karpathy 섹션 + 나머지
+      {
+        head -n 1 "$TARGET_DIR/CLAUDE.md"
+        echo ""
+        echo "---"
+        echo ""
+        cat "$KARPATHY_TMP"
+        tail -n +2 "$TARGET_DIR/CLAUDE.md"
+      } > "$TARGET_DIR/CLAUDE.md.tmp" && \
+        mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+      APPENDED=1
+    fi
+    rm -f "$KARPATHY_TMP"
+  fi
+
   # 1. Skills 테이블에 /add-rule 추가 (섹션 추가 전에 먼저 — 중복 매칭 방지)
   if ! grep -qE '^\|.*\/add-rule' "$TARGET_DIR/CLAUDE.md"; then
     if grep -q "/update-task" "$TARGET_DIR/CLAUDE.md"; then
