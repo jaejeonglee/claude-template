@@ -40,6 +40,12 @@ _마지막 업데이트: 2026-04-23_
 - [x] SessionStart 훅에 .claude/docs/ 디렉토리 트리 동적 출력 추가
 - [x] /migrate-from-ai 스킬 추가 (구버전 .ai/ → 새 구조 분류·통합·이동)
 - [x] init.sh 멱등 병합 확장 (문서 찾기 섹션 + /migrate-from-ai Skills 행)
+- [x] 멀티에이전트 오케스트레이션 제거 (Opus 4.8 + 네이티브 서브에이전트 + Dynamic Workflows로 잉여화)
+  - codex-reasoner / gemini-researcher 에이전트 삭제
+  - call-codex.sh / call-gemini.sh 삭제
+  - CLAUDE.md 라우팅 테이블 제거, 워크플로우 재작성
+  - README 재포지셔닝 (코딩 자세 + 프로젝트 메모리 + 워크플로우 규율)
+  - init.sh에서 agents/scripts 생성·복사 제거
 
 ## 남은 것
 
