@@ -1,11 +1,11 @@
 #!/bin/bash
-# claude-orchestration-template init script
-# 사용법: bash <(curl -s https://raw.githubusercontent.com/jaejeonglee/claude-orchestration-template/main/scripts/init.sh)
+# claude-template init script
+# 사용법: bash <(curl -s https://raw.githubusercontent.com/jaejeonglee/claude-template/main/scripts/init.sh)
 # 또는 클론 후: bash scripts/init.sh
 
 set -e
 
-TEMPLATE_REPO="https://raw.githubusercontent.com/jaejeonglee/claude-orchestration-template/main"
+TEMPLATE_REPO="https://raw.githubusercontent.com/jaejeonglee/claude-template/main"
 TARGET_DIR="${1:-$(pwd)}"
 TODAY=$(date +%Y-%m-%d)
 PROJECT_NAME=$(basename "$TARGET_DIR")
@@ -26,7 +26,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo ""
-echo "Claude Orchestration Template 설치"
+echo "Claude Template 설치"
 echo "────────────────────────────────────────"
 echo "대상: $TARGET_DIR"
 echo ""

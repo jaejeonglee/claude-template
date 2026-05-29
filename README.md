@@ -1,4 +1,4 @@
-# Claude Orchestration Template
+# Claude Template
 
 Claude Code를 더 체계적으로 쓰기 위한 설정 템플릿.
 
@@ -17,7 +17,7 @@ Claude Code를 더 체계적으로 쓰기 위한 설정 템플릿.
 프로젝트 폴더에서 아래 한 줄 실행:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/jaejeonglee/claude-orchestration-template/main/scripts/init.sh)
+bash <(curl -s https://raw.githubusercontent.com/jaejeonglee/claude-template/main/scripts/init.sh)
 ```
 
 설정 파일은 `.claude/` 폴더에 들어가고, `.gitignore`에 자동으로 추가됩니다 (= Git에 안 올라감, 내 컴퓨터에만 있음).
