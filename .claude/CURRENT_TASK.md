@@ -46,6 +46,13 @@ _마지막 업데이트: 2026-04-23_
   - CLAUDE.md 라우팅 테이블 제거, 워크플로우 재작성
   - README 재포지셔닝 (코딩 자세 + 프로젝트 메모리 + 워크플로우 규율)
   - init.sh에서 agents/scripts 생성·복사 제거
+- [x] 구버전 → 신버전 업그레이드 정리 로직 추가 (init.sh)
+  - 고아 파일 삭제 (codex/gemini 에이전트·스크립트) + 빈 디렉토리 정리
+  - CLAUDE.md 구버전 "에이전트 라우팅" 섹션 제거
+  - codex/gemini 참조 워크플로우 섹션 → 신버전으로 교체
+  - 사용자 커스텀 에이전트는 보존
+  - Skills 행 삽입 앵커를 표 행(^|)만 매칭하도록 수정 (1패스 수렴)
+- [x] 리포 rename: claude-orchestration-template → claude-template
 
 ## 남은 것
 
