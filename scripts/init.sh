@@ -85,6 +85,21 @@ copy_file ".claude/skills/update-architecture/SKILL.md" "$TARGET_DIR/.claude/ski
 copy_file ".claude/skills/migrate-from-ai/SKILL.md" "$TARGET_DIR/.claude/skills/migrate-from-ai/SKILL.md"
 copy_file ".claude/settings.json" "$TARGET_DIR/.claude/settings.json"
 
+# 구버전 정리: 제거된 에이전트/스크립트 고아 파일 삭제
+for orphan in \
+  ".claude/agents/codex-reasoner.md" \
+  ".claude/agents/gemini-researcher.md" \
+  ".claude/scripts/call-codex.sh" \
+  ".claude/scripts/call-gemini.sh"; do
+  if [ -f "$TARGET_DIR/$orphan" ]; then
+    rm -f "$TARGET_DIR/$orphan"
+    echo "  제거: $orphan (구버전)"
+  fi
+done
+# 빈 디렉토리 정리 (사용자 커스텀 파일이 있으면 보존됨)
+rmdir "$TARGET_DIR/.claude/agents" 2>/dev/null && echo "  제거: .claude/agents/ (빈 디렉토리)"
+rmdir "$TARGET_DIR/.claude/scripts" 2>/dev/null && echo "  제거: .claude/scripts/ (빈 디렉토리)"
+
 # [3/4] 문서 (이미 있으면 건너뜀)
 echo -e "${GREEN}[3/4] 문서 생성...${NC}"
 copy_if_not_exists ".claude/docs/architecture.md" "$TARGET_DIR/.claude/docs/architecture.md"
@@ -93,6 +108,53 @@ copy_if_not_exists ".claude/docs/conventions.md" "$TARGET_DIR/.claude/docs/conve
 if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
   # 기존 CLAUDE.md가 있으면 누락된 섹션만 추가 (멱등적 병합)
   APPENDED=0
+
+  # 구버전 정리: 제거된 "## 에이전트 라우팅" 섹션 삭제
+  if grep -q "^## 에이전트 라우팅" "$TARGET_DIR/CLAUDE.md"; then
+    awk '
+      /^## 에이전트 라우팅/ { skip=1; next }
+      skip && /^---$/ { skip=0; next }
+      skip { next }
+      { print }
+    ' "$TARGET_DIR/CLAUDE.md" > "$TARGET_DIR/CLAUDE.md.tmp" && \
+      mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+    echo "  정리: 구버전 '에이전트 라우팅' 섹션 제거"
+    APPENDED=1
+  fi
+
+  # 구버전 정리: codex/gemini 참조가 남은 구버전 워크플로우 섹션 제거 후 신버전 추가
+  if grep -q "gemini-researcher\|codex-reasoner" "$TARGET_DIR/CLAUDE.md"; then
+    awk '
+      /^## 기능 개발 워크플로우/ { skip=1; next }
+      skip && /^---$/ { skip=0; next }
+      skip { next }
+      { print }
+    ' "$TARGET_DIR/CLAUDE.md" > "$TARGET_DIR/CLAUDE.md.tmp" && \
+      mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+    echo "  정리: 구버전 '기능 개발 워크플로우' 섹션 제거 (codex/gemini 참조)"
+    APPENDED=1
+  fi
+
+  # 신버전 워크플로우 섹션 추가 (없으면)
+  if ! grep -q "^## 기능 개발 워크플로우" "$TARGET_DIR/CLAUDE.md"; then
+    cat >> "$TARGET_DIR/CLAUDE.md" << 'WORKFLOW_SECTION'
+
+---
+
+## 기능 개발 워크플로우
+
+```
+/new-spec  → 기획 초안 작성 (.claude/docs/specs/*.draft.md)
+사람       → 확정
+구현       → 문서 동기화 → draft 삭제
+```
+
+**확정되지 않은 초안은 바로 코드로 옮기지 않는다.**
+
+깊은 검증이나 대량 병렬 작업이 필요하면 Claude Code의 서브에이전트(Task)로 격리된 컨텍스트에서 처리한다 — 메인 대화를 오염시키지 않는다.
+WORKFLOW_SECTION
+    APPENDED=1
+  fi
 
   # 0. Karpathy 4원칙 추가 (없으면 맨 앞 헤더 뒤에 삽입)
   if ! grep -q "# Part 1. 코딩 자세" "$TARGET_DIR/CLAUDE.md"; then
@@ -122,11 +184,11 @@ if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
     rm -f "$KARPATHY_TMP"
   fi
 
-  # 1. Skills 테이블에 /add-rule 추가 (섹션 추가 전에 먼저 — 중복 매칭 방지)
-  if ! grep -qE '^\|.*\/add-rule' "$TARGET_DIR/CLAUDE.md"; then
-    if grep -q "/update-task" "$TARGET_DIR/CLAUDE.md"; then
+  # 1. Skills 테이블에 /add-rule 추가 (앵커는 표 행만 — 줄 시작이 '|')
+  if ! grep -qE '^\|.*/add-rule' "$TARGET_DIR/CLAUDE.md"; then
+    if grep -qE '^\|.*/update-task' "$TARGET_DIR/CLAUDE.md"; then
       awk '
-        /\/update-task.*CURRENT_TASK/ {
+        /^\|.*\/update-task/ {
           print;
           print "| `/add-rule <규칙>` | 프로젝트 규칙을 `conventions.md`에 추가 |";
           next
@@ -139,10 +201,10 @@ if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
   fi
 
   # 1-b. Skills 테이블에 /update-architecture 추가
-  if ! grep -qE '^\|.*\/update-architecture' "$TARGET_DIR/CLAUDE.md"; then
-    if grep -q "/add-rule" "$TARGET_DIR/CLAUDE.md"; then
+  if ! grep -qE '^\|.*/update-architecture' "$TARGET_DIR/CLAUDE.md"; then
+    if grep -qE '^\|.*/add-rule' "$TARGET_DIR/CLAUDE.md"; then
       awk '
-        /\/add-rule.*conventions/ {
+        /^\|.*\/add-rule/ {
           print;
           print "| `/update-architecture` | `architecture.md`를 현재 코드 기준으로 생성/갱신 |";
           next
@@ -155,10 +217,10 @@ if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
   fi
 
   # 1-c. Skills 테이블에 /migrate-from-ai 추가
-  if ! grep -qE '^\|.*\/migrate-from-ai' "$TARGET_DIR/CLAUDE.md"; then
-    if grep -q "/update-architecture" "$TARGET_DIR/CLAUDE.md"; then
+  if ! grep -qE '^\|.*/migrate-from-ai' "$TARGET_DIR/CLAUDE.md"; then
+    if grep -qE '^\|.*/update-architecture' "$TARGET_DIR/CLAUDE.md"; then
       awk '
-        /\/update-architecture.*architecture/ {
+        /^\|.*\/update-architecture/ {
           print;
           print "| `/migrate-from-ai` | 구버전 `.ai/` 디렉토리를 새 구조로 분류·이동 |";
           next
