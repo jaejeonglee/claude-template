@@ -62,8 +62,6 @@ copy_if_not_exists() {
 
 # [1/4] 디렉토리
 echo -e "${GREEN}[1/4] 디렉토리 생성...${NC}"
-mkdir -p "$TARGET_DIR/.claude/agents"
-mkdir -p "$TARGET_DIR/.claude/scripts"
 mkdir -p "$TARGET_DIR/.claude/skills/new-spec"
 mkdir -p "$TARGET_DIR/.claude/skills/update-task"
 mkdir -p "$TARGET_DIR/.claude/skills/add-rule"
@@ -78,14 +76,8 @@ mkdir -p "$TARGET_DIR/.claude/docs/decisions"
 mkdir -p "$TARGET_DIR/.claude/docs/reference"
 mkdir -p "$TARGET_DIR/.claude/docs/specs"
 
-# [2/4] 에이전트·스킬 (항상 최신으로 덮어씀)
-echo -e "${GREEN}[2/4] 에이전트·스킬 복사...${NC}"
-copy_file ".claude/agents/codex-reasoner.md" "$TARGET_DIR/.claude/agents/codex-reasoner.md"
-copy_file ".claude/agents/gemini-researcher.md" "$TARGET_DIR/.claude/agents/gemini-researcher.md"
-copy_file ".claude/scripts/call-gemini.sh" "$TARGET_DIR/.claude/scripts/call-gemini.sh"
-copy_file ".claude/scripts/call-codex.sh" "$TARGET_DIR/.claude/scripts/call-codex.sh"
-chmod +x "$TARGET_DIR/.claude/scripts/call-gemini.sh"
-chmod +x "$TARGET_DIR/.claude/scripts/call-codex.sh"
+# [2/4] 스킬 + 설정 (항상 최신으로 덮어씀)
+echo -e "${GREEN}[2/4] 스킬·설정 복사...${NC}"
 copy_file ".claude/skills/new-spec/SKILL.md" "$TARGET_DIR/.claude/skills/new-spec/SKILL.md"
 copy_file ".claude/skills/update-task/SKILL.md" "$TARGET_DIR/.claude/skills/update-task/SKILL.md"
 copy_file ".claude/skills/add-rule/SKILL.md" "$TARGET_DIR/.claude/skills/add-rule/SKILL.md"
