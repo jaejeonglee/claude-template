@@ -103,14 +103,7 @@ architecture.md에 이미 내용이 있으면:
 
 처음이면 바로 작성.
 
-### Step 5. PROGRESS.md에 로그
-
-```markdown
-## 완료
-- [YYYY-MM-DD] architecture.md [생성/갱신]: [유형] 프로젝트 구조 반영
-```
-
-### Step 6. 보고
+### Step 5. 보고
 
 ```
 architecture.md [생성/갱신] 완료
