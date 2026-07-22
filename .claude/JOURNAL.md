@@ -22,3 +22,9 @@
   - 템플릿/init.sh/훅(SessionStart tail·Stop 저널 검증)/스킬 3종 갱신
   - 레거시 마이그레이션 (PROGRESS 내용 → JOURNAL 이관 + CLAUDE.md 규칙 교체)
   - 검증 통과: 신규 / 레거시 / 멱등성
+
+## 2026-07-22 18:29
+- /add-hook 스킬 추가 — 자연어 자동화 요청을 훅 설정으로 변환
+  - 커스텀 훅은 settings.local.json에 기록 (init.sh 덮어쓰기에서 생존)
+  - CLAUDE.md: 규칙(/add-rule) vs 자동화(/add-hook) 라우팅 구분 추가
+  - 검증 통과: 신규 / 레거시 행 삽입 / 멱등성

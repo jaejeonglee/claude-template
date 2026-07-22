@@ -67,6 +67,7 @@ mkdir -p "$TARGET_DIR/.claude/skills/update-task"
 mkdir -p "$TARGET_DIR/.claude/skills/add-rule"
 mkdir -p "$TARGET_DIR/.claude/skills/update-architecture"
 mkdir -p "$TARGET_DIR/.claude/skills/migrate-from-ai"
+mkdir -p "$TARGET_DIR/.claude/skills/add-hook"
 
 # 표준 문서 카테고리 디렉토리 (이미 있으면 그대로 유지)
 mkdir -p "$TARGET_DIR/.claude/docs/api"
@@ -83,6 +84,7 @@ copy_file ".claude/skills/update-task/SKILL.md" "$TARGET_DIR/.claude/skills/upda
 copy_file ".claude/skills/add-rule/SKILL.md" "$TARGET_DIR/.claude/skills/add-rule/SKILL.md"
 copy_file ".claude/skills/update-architecture/SKILL.md" "$TARGET_DIR/.claude/skills/update-architecture/SKILL.md"
 copy_file ".claude/skills/migrate-from-ai/SKILL.md" "$TARGET_DIR/.claude/skills/migrate-from-ai/SKILL.md"
+copy_file ".claude/skills/add-hook/SKILL.md" "$TARGET_DIR/.claude/skills/add-hook/SKILL.md"
 copy_file ".claude/settings.json" "$TARGET_DIR/.claude/settings.json"
 
 # 구버전 정리: 제거된 에이전트/스크립트 고아 파일 삭제
@@ -237,6 +239,22 @@ WORKFLOW_SECTION
         /^\|.*\/update-architecture/ {
           print;
           print "| `/migrate-from-ai` | 구버전 `.ai/` 디렉토리를 새 구조로 분류·이동 |";
+          next
+        }
+        { print }
+      ' "$TARGET_DIR/CLAUDE.md" > "$TARGET_DIR/CLAUDE.md.tmp" && \
+        mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+      APPENDED=1
+    fi
+  fi
+
+  # 1-c2. Skills 테이블에 /add-hook 추가
+  if ! grep -qE '^\|.*/add-hook' "$TARGET_DIR/CLAUDE.md"; then
+    if grep -qE '^\|.*/migrate-from-ai' "$TARGET_DIR/CLAUDE.md"; then
+      awk '
+        /^\|.*\/migrate-from-ai/ {
+          print;
+          print "| `/add-hook <설명>` | 자연어 자동화 요청을 훅으로 변환 (`settings.local.json`) |";
           next
         }
         { print }
