@@ -35,14 +35,7 @@ description: 프로젝트 규칙을 conventions.md에 추가
 
 날짜 주석을 붙여서 언제 추가된 규칙인지 추적 가능하게 한다.
 
-### Step 3. PROGRESS.md에 로그
-
-```markdown
-## 완료
-- [YYYY-MM-DD] 규칙 추가: [규칙 요약]
-```
-
-### Step 4. 보고
+### Step 3. 보고
 
 ```
 규칙을 conventions.md에 기록했습니다.

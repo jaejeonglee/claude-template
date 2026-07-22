@@ -109,6 +109,20 @@ if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
   # 기존 CLAUDE.md가 있으면 누락된 섹션만 추가 (멱등적 병합)
   APPENDED=0
 
+  # 구버전 정리: "작업 완료 시" 규칙을 저널 방식으로 교체
+  if grep -qF '**작업 완료 시**: `.claude/CURRENT_TASK.md` 항상 업데이트' "$TARGET_DIR/CLAUDE.md"; then
+    awk '
+      /\*\*작업 완료 시\*\*: `\.claude\/CURRENT_TASK\.md` 항상 업데이트/ {
+        print "- **작업 완료 시**: `date +\"%Y-%m-%d %H:%M\"`로 시각 확인 후 `.claude/JOURNAL.md`에 한 줄 요약 append, `.claude/CURRENT_TASK.md`는 \"지금 + 다음\"만 남기고 갱신 (완료 항목은 저널로 보내고 제거)";
+        next
+      }
+      { print }
+    ' "$TARGET_DIR/CLAUDE.md" > "$TARGET_DIR/CLAUDE.md.tmp" && \
+      mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+    echo "  정리: '작업 완료 시' 규칙을 JOURNAL 방식으로 교체"
+    APPENDED=1
+  fi
+
   # 구버전 정리: 제거된 "## 에이전트 라우팅" 섹션 삭제
   if grep -q "^## 에이전트 라우팅" "$TARGET_DIR/CLAUDE.md"; then
     awk '
@@ -360,15 +374,31 @@ else
   echo "  생성: .claude/CURRENT_TASK.md"
 fi
 
-if [ -f "$TARGET_DIR/.claude/PROGRESS.md" ]; then
-  echo "  건너뜀: .claude/PROGRESS.md"
+# JOURNAL.md — 이미 있으면 건너뜀
+if [ -f "$TARGET_DIR/.claude/JOURNAL.md" ]; then
+  echo "  건너뜀: .claude/JOURNAL.md"
 else
   if [ -n "$TEMPLATE_LOCAL" ]; then
-    cp "$TEMPLATE_LOCAL/PROGRESS.md.template" "$TARGET_DIR/.claude/PROGRESS.md"
+    cp "$TEMPLATE_LOCAL/JOURNAL.md.template" "$TARGET_DIR/.claude/JOURNAL.md"
   else
-    curl -sf "$TEMPLATE_REPO/PROGRESS.md.template" -o "$TARGET_DIR/.claude/PROGRESS.md"
+    curl -sf "$TEMPLATE_REPO/JOURNAL.md.template" -o "$TARGET_DIR/.claude/JOURNAL.md"
   fi
-  echo "  생성: .claude/PROGRESS.md"
+  echo "  생성: .claude/JOURNAL.md"
+fi
+
+# 구버전 정리: PROGRESS.md 제거 (내용이 있으면 JOURNAL.md로 이관)
+if [ -f "$TARGET_DIR/.claude/PROGRESS.md" ]; then
+  # 헤더/빈 줄 제외한 실제 내용이 있는지 확인
+  if grep -vE '^(#|\s*$)' "$TARGET_DIR/.claude/PROGRESS.md" | grep -q .; then
+    {
+      echo ""
+      echo "## $TODAY (구 PROGRESS.md에서 이관)"
+      grep -vE '^# Progress' "$TARGET_DIR/.claude/PROGRESS.md"
+    } >> "$TARGET_DIR/.claude/JOURNAL.md"
+    echo "  이관: .claude/PROGRESS.md → JOURNAL.md"
+  fi
+  rm -f "$TARGET_DIR/.claude/PROGRESS.md"
+  echo "  제거: .claude/PROGRESS.md (구버전 — JOURNAL.md로 대체)"
 fi
 
 # [4/4] .gitignore

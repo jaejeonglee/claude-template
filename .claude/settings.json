@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "이번 대화에서 Edit/Write 도구로 파일을 수정한 적이 있는지 확인하세요. 파일 수정이 없었다면 {\"ok\": true} 로 즉시 응답하세요. 파일 수정이 있었다면: 1) 에러 핸들링 누락, 2) 관련 문서 동기화 누락, 3) .claude/CURRENT_TASK.md 업데이트 누락 중 해당하는 것이 있으면 {\"ok\": false, \"reason\": \"[이유]\"}, 없으면 {\"ok\": true} 로 응답하세요."
+            "prompt": "이번 대화에서 Edit/Write 도구로 파일을 수정한 적이 있는지 확인하세요. 파일 수정이 없었다면 {\"ok\": true} 로 즉시 응답하세요. 파일 수정이 있었다면: 1) 에러 핸들링 누락, 2) 관련 문서 동기화 누락, 3) 작업 단위가 완료되었는데 .claude/JOURNAL.md에 시점과 함께 기록되지 않음, 4) .claude/CURRENT_TASK.md가 현재 상태와 다름(완료 항목이 남아있으면 저널로 이동 후 제거) 중 해당하는 것이 있으면 {\"ok\": false, \"reason\": \"[이유]\"}, 없으면 {\"ok\": true} 로 응답하세요. 아직 진행 중인 작업이면 저널 기록은 요구하지 마세요."
           }
         ]
       }
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '=== 현재 작업 ===' && cat .claude/CURRENT_TASK.md 2>/dev/null && echo '' && echo '=== 문서 구조 (.claude/docs/) ===' && (cd .claude/docs 2>/dev/null && find . -maxdepth 2 -not -path '.' | sort) && echo '' && echo '=== 최근 커밋 ===' && git log --oneline -5 2>/dev/null"
+            "command": "echo '=== 현재 작업 ===' && cat .claude/CURRENT_TASK.md 2>/dev/null && echo '' && echo '=== 최근 작업 기록 (JOURNAL 끝 15줄) ===' && tail -n 15 .claude/JOURNAL.md 2>/dev/null && echo '' && echo '=== 문서 구조 (.claude/docs/) ===' && (cd .claude/docs 2>/dev/null && find . -maxdepth 2 -not -path '.' | sort) && echo '' && echo '=== 최근 커밋 ===' && git log --oneline -5 2>/dev/null"
           }
         ]
       }
