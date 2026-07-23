@@ -44,11 +44,15 @@ description: 자연어 요청을 Claude Code 훅으로 변환해 settings.local.
 | `command` | 쉘 명령 실행 (린트, 포맷터, 알림, 정보 출력) |
 | `prompt` | Claude 자기 검증 (조건 확인 후 `{"ok": true/false}` 응답) |
 
-특정 파일만 대상이면 `$CLAUDE_TOOL_INPUT`에서 경로를 추출해 필터링한다 (기존 ESLint 훅 패턴 참조):
+**훅 입력 계약**: 이벤트 JSON은 **stdin**으로 전달되고, 도구 인자는 `.tool_input.*`에 중첩되어 있다 (환경변수 아님). 특정 파일만 대상이면:
 
 ```bash
-FILE=$(echo "$CLAUDE_TOOL_INPUT" | jq -r '.file_path // empty' 2>/dev/null); if [ -n "$FILE" ] && echo "$FILE" | grep -qE '\.py$'; then black "$FILE" 2>/dev/null; fi; exit 0
+FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); if [ -n "$FILE" ] && echo "$FILE" | grep -qE '\.py$'; then black "$FILE" 2>/dev/null; fi; exit 0
 ```
+
+- Bash 명령 검사는 `.tool_input.command`
+- 프로젝트 상대 경로를 쓰는 명령은 `cd "${CLAUDE_PROJECT_DIR:-.}"`로 앵커링 (하위 폴더에서 `claude` 실행해도 동작)
+- PreToolUse에서 `exit 2` + stderr = 해당 도구 호출 차단
 
 ### Step 3. 설정 초안 작성 + 사용자 확인
 
