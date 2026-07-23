@@ -337,7 +337,27 @@ DOC_FINDER
 - 외부 API / 서비스 통합 추가·제거
 
 버그 수정, 리팩터링, 로직 변경만으로는 갱신하지 않는다.
+
+**주 1회 정기 감사**: 세션 시작 출력에 "주간 아키텍처 감사 기한 경과" 신호가 보이면, 사용자의 첫 요청을 처리한 뒤 이 세션 안에서 `/update-architecture`를 실행한다. 문서와 코드의 드리프트는 조용히 쌓이므로 신호를 무시하지 않는다.
 ARCH_SECTION
+    APPENDED=1
+  fi
+
+  # 2-b. 아키텍처 섹션은 있는데 주간 감사 규칙이 없는 구버전 → 규칙 줄 삽입
+  if grep -q "## 아키텍처 변경 감지 시" "$TARGET_DIR/CLAUDE.md" && \
+     ! grep -q "주 1회 정기 감사" "$TARGET_DIR/CLAUDE.md"; then
+    awk '
+      /버그 수정, 리팩터링, 로직 변경만으로는 갱신하지 않는다\./ && !done {
+        print;
+        print "";
+        print "**주 1회 정기 감사**: 세션 시작 출력에 \"주간 아키텍처 감사 기한 경과\" 신호가 보이면, 사용자의 첫 요청을 처리한 뒤 이 세션 안에서 `/update-architecture`를 실행한다. 문서와 코드의 드리프트는 조용히 쌓이므로 신호를 무시하지 않는다.";
+        done=1;
+        next
+      }
+      { print }
+    ' "$TARGET_DIR/CLAUDE.md" > "$TARGET_DIR/CLAUDE.md.tmp" && \
+      mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+    echo "  정리: '주 1회 정기 감사' 규칙 추가"
     APPENDED=1
   fi
 
@@ -402,6 +422,12 @@ else
     curl -sf "$TEMPLATE_REPO/JOURNAL.md.template" -o "$TARGET_DIR/.claude/JOURNAL.md"
   fi
   echo "  생성: .claude/JOURNAL.md"
+fi
+
+# 주간 아키텍처 감사 타이머 시작점 (없으면 생성)
+if [ ! -f "$TARGET_DIR/.claude/.last-arch-audit" ]; then
+  touch "$TARGET_DIR/.claude/.last-arch-audit"
+  echo "  생성: .claude/.last-arch-audit (주간 감사 타이머)"
 fi
 
 # 구버전 정리: PROGRESS.md 제거 (내용이 있으면 JOURNAL.md로 이관)
