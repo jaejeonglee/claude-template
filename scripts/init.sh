@@ -361,6 +361,23 @@ ARCH_SECTION
     APPENDED=1
   fi
 
+  # 2-b2. 핵심 규칙에 테스트·커밋 규칙 추가 (없으면 "## 핵심 규칙" 헤더 직후 삽입)
+  if grep -q "^## 핵심 규칙" "$TARGET_DIR/CLAUDE.md" && \
+     ! grep -q "구현 완료 선언 전 테스트" "$TARGET_DIR/CLAUDE.md"; then
+    awk '
+      /^## 핵심 규칙/ && !done {
+        print; getline nl; print nl;
+        print "- **구현 완료 선언 전 테스트**: 코드 로직을 바꿨으면 관련 테스트를 실행하고 결과를 보고한다. 테스트가 없는 프로젝트면 \"테스트 없음\"을 명시한다";
+        print "- **완료 시 커밋 제안**: 작업 단위가 끝나면 커밋되지 않은 변경을 알리고 커밋을 제안한다 (커밋 여부는 사용자 결정)";
+        done=1; next
+      }
+      { print }
+    ' "$TARGET_DIR/CLAUDE.md" > "$TARGET_DIR/CLAUDE.md.tmp" && \
+      mv "$TARGET_DIR/CLAUDE.md.tmp" "$TARGET_DIR/CLAUDE.md"
+    echo "  정리: 핵심 규칙에 테스트·커밋 규칙 추가"
+    APPENDED=1
+  fi
+
   # 2-c. "탐색 사다리" 섹션 추가
   if ! grep -q "탐색 사다리" "$TARGET_DIR/CLAUDE.md"; then
     cat >> "$TARGET_DIR/CLAUDE.md" << 'LADDER_SECTION'
