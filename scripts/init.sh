@@ -361,6 +361,27 @@ ARCH_SECTION
     APPENDED=1
   fi
 
+  # 2-c. "탐색 사다리" 섹션 추가
+  if ! grep -q "탐색 사다리" "$TARGET_DIR/CLAUDE.md"; then
+    cat >> "$TARGET_DIR/CLAUDE.md" << 'LADDER_SECTION'
+
+---
+
+## 모를 때 — 탐색 사다리
+
+추측하지 않는다. 아래 순서로 스스로 찾아본 뒤에도 남는 것만 사람에게 묻는다.
+
+1. **코드 맵** — `architecture.md`의 코드 맵에서 위치 확인 → 해당 코드 직접 읽기
+2. **프로젝트 문서** — `conventions.md`, `.claude/docs/` 카테고리 grep
+3. **과거 기록** — `.claude/JOURNAL.md`, `git log --grep` (비슷한 결정이 이미 있었는지)
+4. **외부 정보** — 라이브러리·API 스펙은 WebSearch로 공식 문서 확인
+5. **사람** — 위를 다 거쳐도 남는 건 '사실'이 아니라 '결정'이다 → 질문 형식으로
+
+**사실(코드·문서에 있는 것)은 찾아서 확인하고, 결정(정책·취향·범위)은 물어본다.**
+LADDER_SECTION
+    APPENDED=1
+  fi
+
   # 2. "새 규칙 발견 시" 섹션 추가
   if ! grep -q "## 새 규칙 발견 시" "$TARGET_DIR/CLAUDE.md"; then
     cat >> "$TARGET_DIR/CLAUDE.md" << 'RULE_SECTION'

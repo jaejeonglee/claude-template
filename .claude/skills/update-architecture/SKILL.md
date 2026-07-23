@@ -94,6 +94,28 @@ find . -name "schema.prisma" -o -name "*.sql" -o -name "*.proto" | head -5
 grep -rE "(router|route|@Get|@Post|app\.)" src/ 2>/dev/null | head -10
 ```
 
+#### 코드 맵 (프로젝트 유형 무관, 필수 섹션)
+
+"무엇을 찾을 때 어디를 보나"를 **디렉토리(모듈) 수준**으로 정리한다. 파일 단위는 금방 낡으므로 쓰지 않는다 — 디렉토리까지 안내하면 그 안은 `ls`/`grep`으로 찾는다.
+
+```markdown
+## 코드 맵
+
+| 찾는 것 | 위치 | 비고 |
+|---|---|---|
+| 인증/세션 | `src/middleware/auth/` | JWT 검증 |
+| 결제 도메인 | `src/services/payment/` | PG 연동 포함 |
+| DB 접근 | `src/repositories/` | 도메인별 1파일 |
+
+### 배치 규칙 (새 코드는 어디에)
+
+- 새 도메인 모듈 → `src/services/<도메인>/`
+- 공용 유틸 → `src/lib/`
+- 새 엔드포인트 → 해당 도메인의 `routes.ts`
+```
+
+배치 규칙은 기존 코드의 실제 패턴에서 도출한다 (희망사항 금지). 프로젝트가 크면서 새 모듈이 생기면 이 표에 행이 추가되는 구조다.
+
 ### Step 4. 기존 내용과 비교
 
 architecture.md에 이미 내용이 있으면:
