@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '=== 현재 작업 ===' && cat .claude/CURRENT_TASK.md 2>/dev/null && echo '' && echo '=== 최근 작업 기록 (JOURNAL 끝 15줄) ===' && tail -n 15 .claude/JOURNAL.md 2>/dev/null && echo '' && echo '=== 문서 구조 (.claude/docs/) ===' && (cd .claude/docs 2>/dev/null && find . -maxdepth 2 -not -path '.' | sort) && echo '' && echo '=== 최근 커밋 ===' && git log --oneline -5 2>/dev/null"
+            "command": "echo '=== 현재 작업 ===' && cat .claude/CURRENT_TASK.md 2>/dev/null; echo ''; echo '=== 최근 작업 기록 (JOURNAL 끝 15줄) ==='; tail -n 15 .claude/JOURNAL.md 2>/dev/null; echo ''; echo '=== 문서 구조 (.claude/docs/) ==='; (cd .claude/docs 2>/dev/null && find . -maxdepth 2 -not -path '.' | sort); echo ''; echo '=== 최근 커밋 ==='; git log --oneline -5 2>/dev/null; if [ -f .claude/.last-arch-audit ] && [ -n \"$(find .claude/.last-arch-audit -mtime +7 2>/dev/null)\" ] && [ \"$(git log --oneline --since='7 days ago' 2>/dev/null | wc -l)\" -gt 0 ]; then echo ''; echo '=== 주간 아키텍처 감사 기한 경과 — 이 세션에서 /update-architecture 를 실행하세요 ==='; fi; true"
           }
         ]
       }

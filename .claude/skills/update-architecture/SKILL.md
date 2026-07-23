@@ -103,10 +103,20 @@ architecture.md에 이미 내용이 있으면:
 
 처음이면 바로 작성.
 
-### Step 5. 보고
+### Step 5. 감사 타이머 갱신
+
+변경 유무와 무관하게 실행 (변경 없음도 유효한 감사 결과):
+
+```bash
+touch .claude/.last-arch-audit
+```
+
+SessionStart 훅이 이 파일의 시각으로 주간 감사 기한을 판단한다.
+
+### Step 6. 보고
 
 ```
-architecture.md [생성/갱신] 완료
+architecture.md [생성/갱신/변경 없음] — 감사 완료
 
 감지된 프로젝트 유형: [유형]
 주요 변경:

@@ -28,3 +28,10 @@
   - 커스텀 훅은 settings.local.json에 기록 (init.sh 덮어쓰기에서 생존)
   - CLAUDE.md: 규칙(/add-rule) vs 자동화(/add-hook) 라우팅 구분 추가
   - 검증 통과: 신규 / 레거시 행 삽입 / 멱등성
+
+## 2026-07-23 09:51
+- 주간 아키텍처 감사 도입 (문서-코드 드리프트 방지)
+  - .last-arch-audit 마커 + SessionStart 훅 신호 (7일 경과 && 커밋 존재 시)
+  - /update-architecture가 감사 후 마커 갱신 (변경 없음도 유효한 감사)
+  - CLAUDE.md: 신호 보이면 해당 세션 내 실행 규칙
+  - 검증: 신규/신호발생/조용한기간/레거시병합/멱등 통과
